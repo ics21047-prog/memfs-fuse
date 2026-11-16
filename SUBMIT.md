@@ -2,8 +2,8 @@
 
 ## Members
 ### Member 1
-- Name: 
-- Academic ID:
+- Name: Minas Konstantinos
+- Academic ID: ics21047
 
 ### Member 2
 - Name: 
