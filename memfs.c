@@ -372,7 +372,7 @@ static int memfs_symlink(const char *from, const char *to) {
 
   node->data = strdup(from);
   node->vstat.st_size = strlen(from);
-
+  mutex_unlock(&the_fs.lock);
   return 0;
 }
 
