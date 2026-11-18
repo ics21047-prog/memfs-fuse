@@ -271,7 +271,6 @@ static int memfs_unlink_locked(const char *path) {
   // Find parent inode
   if (!getnodebypath(dirpath, &the_fs, &dir)) {
     free(dirpath);
-    mutex_unlock(&the_fs.lock);
     return -errno;
   }
 
@@ -749,8 +748,22 @@ static struct fuse_operations memfs_oper = {.getattr = memfs_getattr,
 // Application entry point
 //
 
+void *background_handler(void *args) {
+  while (1) {
+    sleep(5);
+    mutex_lock(&the_fs.lock);
+    collect_statistics(the_fs.root);
+    mutex_unlock(&the_fs.lock);
+  }
+  return NULL;
+}
+
 int main(int argc, char *argv[]) {
   mutex_init(&the_fs.lock);
+  pthread_t thread_collect;
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   // Initialize root directory
   struct node *root = malloc(sizeof(struct node));
 
@@ -766,7 +779,14 @@ int main(int argc, char *argv[]) {
   the_fs.root = root;
 
   umask(0);
+
+  // creating the statistics thread
+  if (pthread_create(&thread_collect, &attr, background_handler, NULL) != 0) {
+    fprintf(stderr, "Couldnt create the detached thread!!!!\n");
+    return EXIT_FAILURE;
+  }
+
   int ret = fuse_main(argc, argv, &memfs_oper, NULL);
-  mutex_destroy(&the_fs.lock);
+  pthread_attr_destroy(&attr);
   return ret;
 }
