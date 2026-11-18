@@ -5,12 +5,10 @@
 #define _LOCKS_H
 
 struct mutex {
-        
+  pthread_mutex_t mut;
 };
 
-struct rwmutex {
-
-};
+struct rwmutex {};
 
 // Simple lock interface.
 void mutex_init(struct mutex *lock);
